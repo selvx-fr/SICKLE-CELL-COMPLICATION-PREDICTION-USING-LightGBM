@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sickle Cell Complication Prediction System - AI Healthcare Dashboard</title>
+<meta name="description" content="AI-powered sickle cell complication prediction system with clinical decision support">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a0a0a;--bg2:#200e0e;--bg3:#2a1111;
+  --card:rgba(40,15,15,0.6);--card-solid:#2a1111;
+  --glass-border:rgba(220,50,50,0.18);--glass-border-hover:rgba(239,68,68,0.4);
+  --fg:#fce4e4;--fg-muted:#d4a0a0;--fg-dim:#a06565;
+  --primary:#ef4444;--primary-light:#f87171;--primary-lighter:#fca5a5;--primary-pale:rgba(239,68,68,0.12);
+  --secondary:#dc2626;--accent:#f97316;--accent2:#fb923c;
+  --cherry:#be123c;--rose:#fb7185;--crimson:#b91c1c;
+  --risk-low:#22c55e;--risk-med:#f59e0b;--risk-high:#ef4444;
+  --radius:18px;
+  --gradient-primary:linear-gradient(135deg,#ef4444,#dc2626);
+  --gradient-hero:linear-gradient(135deg,#ef4444,#be123c,#dc2626);
+  --gradient-fire:linear-gradient(135deg,#ef4444,#f97316,#ef4444);
+  --gradient-card:linear-gradient(145deg,rgba(40,15,15,0.7),rgba(30,10,10,0.5));
+  --gradient-sidebar:linear-gradient(180deg,#1a0505,#2a0a0a,#1a0505);
+  --glow-red:0 0 30px rgba(239,68,68,0.25);
+  --glow-fire:0 0 40px rgba(249,115,22,0.2);
+  --shadow-red:0 4px 30px rgba(239,68,68,0.1);
+  --shadow-deep:0 8px 40px rgba(0,0,0,0.4);
+  --light-blue:#7dd3fc;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--fg);overflow-x:hidden;min-height:100vh}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#5c1a1a;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--primary)}
+
+/* ===== ANIMATED BG ===== */
+.animated-bg{background:linear-gradient(135deg,#1a0505,#200e0e,#1a0808,#2a0a0a,#1a0505);background-size:800% 800%;animation:bgPulse 20s ease infinite}
+@keyframes bgPulse{0%{background-position:0% 50%}25%{background-position:50% 0%}50%{background-position:100% 50%}75%{background-position:50% 100%}100%{background-position:0% 50%}}
+
+/* ===== GRID OVERLAY ===== */
+.grid-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(239,68,68,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(239,68,68,0.03) 1px,transparent 1px);
+  background-size:60px 60px;animation:gridScroll 30s linear infinite}
+@keyframes gridScroll{0%{background-position:0 0}100%{background-position:60px 60px}}
+
+/* ===== FLOATING ORBS ===== */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+.orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(239,68,68,0.1),transparent 70%);top:-10%;right:-12%;animation:orbDrift 10s ease-in-out infinite}
+.orb-2{width:500px;height:500px;background:radial-gradient(circle,rgba(190,18,60,0.08),transparent 70%);bottom:-8%;left:-10%;animation:orbDrift 12s ease-in-out 3s infinite}
+.orb-3{width:400px;height:400px;background:radial-gradient(circle,rgba(249,115,22,0.06),transparent 70%);top:40%;left:30%;animation:orbDrift 14s ease-in-out 5s infinite}
+.orb-4{width:300px;height:300px;background:radial-gradient(circle,rgba(248,113,113,0.08),transparent 70%);top:15%;right:25%;animation:orbDrift 9s ease-in-out 1s infinite}
+.orb-5{width:200px;height:200px;background:radial-gradient(circle,rgba(220,38,38,0.1),transparent 70%);bottom:25%;right:15%;animation:orbDrift 11s ease-in-out 4s infinite}
+.orb-6{width:350px;height:350px;background:radial-gradient(circle,rgba(239,68,68,0.05),transparent 70%);top:60%;left:10%;animation:orbDrift 13s ease-in-out 2s infinite}
+@keyframes orbDrift{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(15px,-20px) scale(1.05)}50%{transform:translate(-10px,-30px) scale(1.08)}75%{transform:translate(20px,-10px) scale(1.03)}}
+
+/* ===== PARTICLES ===== */
+.particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.particle{position:absolute;border-radius:50%;opacity:0;animation:particleFloat linear infinite}
+@keyframes particleFloat{0%{opacity:0;transform:translateY(100vh) rotate(0deg) scale(0)}10%{opacity:.7}50%{opacity:.4}90%{opacity:.2}100%{opacity:0;transform:translateY(-10vh) rotate(720deg) scale(1.2)}}
+
+/* ===== EMBER PARTICLES ===== */
+.ember{position:absolute;width:3px;height:3px;border-radius:50%;background:#ef4444;filter:blur(1px);animation:emberRise linear infinite}
+@keyframes emberRise{0%{opacity:0;transform:translateY(100vh) translateX(0) scale(0)}20%{opacity:.8}50%{transform:translateY(50vh) translateX(30px) scale(1)}80%{opacity:.3}100%{opacity:0;transform:translateY(-10vh) translateX(-20px) scale(0)}}
+
+/* ===== HEARTBEAT LINE ===== */
+.heartbeat-line{position:fixed;bottom:0;left:0;right:0;height:3px;z-index:1;overflow:hidden;pointer-events:none}
+.heartbeat-line::before{content:'';position:absolute;width:200%;height:100%;background:repeating-linear-gradient(90deg,transparent,transparent 40px,var(--primary) 40px,var(--primary) 42px,transparent 42px,transparent 50px,var(--primary) 50px,var(--primary) 52px,transparent 52px,transparent 55px,var(--primary) 55px,transparent 65px,transparent 80px);animation:heartbeatScroll 3s linear infinite;opacity:.4}
+@keyframes heartbeatScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;min-height:100vh;position:relative}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:270px;background:var(--gradient-sidebar);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:30;
+  transition:width .35s cubic-bezier(.4,0,.2,1);
+  border-right:1px solid rgba(239,68,68,0.1);
+  box-shadow:4px 0 40px rgba(239,68,68,0.08);
+}
+.sidebar.collapsed{width:72px}
+.sidebar-header{display:flex;align-items:center;gap:12px;padding:0 20px;height:72px;border-bottom:1px solid rgba(239,68,68,0.1)}
+.sidebar-logo{
+  width:44px;height:44px;border-radius:14px;
+  background:var(--gradient-hero);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;
+  box-shadow:0 4px 20px rgba(239,68,68,0.4);
+  animation:logoPulse 2s ease-in-out infinite,logoRotate 20s linear infinite;
+  position:relative;
+}
+.sidebar-logo::after{content:'';position:absolute;inset:-3px;border-radius:17px;background:var(--gradient-fire);opacity:0;animation:logoGlow 2s ease-in-out infinite;z-index:-1}
+@keyframes logoPulse{0%,100%{box-shadow:0 4px 20px rgba(239,68,68,0.4);transform:scale(1)}50%{box-shadow:0 4px 35px rgba(239,68,68,0.7);transform:scale(1.05)}}
+@keyframes logoRotate{0%{border-radius:14px}25%{border-radius:18px 10px 18px 10px}50%{border-radius:14px}75%{border-radius:10px 18px 10px 18px}100%{border-radius:14px}}
+@keyframes logoGlow{0%,100%{opacity:0;transform:scale(1)}50%{opacity:.3;transform:scale(1.15)}}
+
+.sidebar-title{overflow:hidden;transition:all .3s}
+.sidebar.collapsed .sidebar-title{opacity:0;width:0}
+.sidebar-title h1{font-size:16px;font-weight:800;background:var(--gradient-fire);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.3px}
+.sidebar-title p{font-size:10px;color:var(--fg-dim)}
+
+.nav{flex:1;padding:20px 12px;display:flex;flex-direction:column;gap:4px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;
+  font-size:13px;font-weight:500;color:var(--fg-dim);cursor:pointer;
+  transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
+}
+.nav-item::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(239,68,68,0.08),transparent);opacity:0;transition:opacity .3s;border-radius:14px}
+.nav-item:hover{color:var(--fg);transform:translateX(6px)}
+.nav-item:hover::before{opacity:1}
+.nav-item.active{background:rgba(239,68,68,0.15);color:#fff;box-shadow:inset 0 0 20px rgba(239,68,68,0.05),0 4px 15px rgba(0,0,0,0.2)}
+.nav-item.active::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:24px;border-radius:0 4px 4px 0;background:var(--gradient-fire);box-shadow:0 0 10px rgba(239,68,68,0.5)}
+.nav-item svg{width:20px;height:20px;flex-shrink:0;transition:all .3s}
+.nav-item:hover svg{filter:drop-shadow(0 0 4px rgba(239,68,68,0.5))}
+.nav-item span{white-space:nowrap;overflow:hidden;transition:opacity .3s}
+.sidebar.collapsed .nav-item span{opacity:0;width:0}
+
+.sidebar-status{margin:0 12px 12px;padding:14px;border-radius:14px;background:rgba(239,68,68,0.05);backdrop-filter:blur(10px);border:1px solid rgba(239,68,68,0.1)}
+.sidebar.collapsed .sidebar-status{display:none}
+.status-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.status-header svg{width:16px;height:16px;color:var(--primary-light)}
+.status-header span{font-size:11px;font-weight:600;color:var(--fg-muted)}
+.status-dot{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--fg-dim)}
+.status-dot::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--risk-low);animation:dotPulse 1.5s infinite;box-shadow:0 0 10px rgba(34,197,94,0.6)}
+@keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+
+.sidebar-heartbeat{margin:0 12px 8px;height:30px;overflow:hidden;position:relative;border-radius:8px}
+.sidebar.collapsed .sidebar-heartbeat{display:none}
+.hb-svg{position:absolute;animation:hbScroll 3s linear infinite}
+@keyframes hbScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.sidebar-toggle{margin:0 12px 16px;padding:10px;border-radius:12px;border:none;background:rgba(239,68,68,0.08);color:var(--fg-dim);cursor:pointer;display:flex;justify-content:center;transition:all .3s}
+.sidebar-toggle:hover{background:rgba(239,68,68,0.15);color:var(--primary-light);box-shadow:var(--glow-red)}
+
+.main{flex:1;display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:10}
+
+/* ===== TOP NAV ===== */
+.topnav{
+  height:72px;border-bottom:1px solid rgba(239,68,68,0.1);
+  background:rgba(26,5,5,0.7);backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
+  position:sticky;top:0;z-index:20;
+}
+.topnav-title{font-size:18px;font-weight:800;background:var(--gradient-fire);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:titleGlow 3s ease-in-out infinite}
+@keyframes titleGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+.topnav-right{display:flex;align-items:center;gap:12px}
+.topnav-search{
+  display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;
+  background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.12);font-size:12px;color:var(--fg-dim);
+  transition:all .3s;cursor:pointer;
+}
+.topnav-search:hover{border-color:var(--primary);box-shadow:var(--glow-red)}
+.notif-btn{
+  position:relative;padding:10px;border-radius:14px;border:none;
+  background:rgba(239,68,68,0.06);color:var(--fg-dim);cursor:pointer;transition:all .3s;
+}
+.notif-btn:hover{background:rgba(239,68,68,0.15);color:var(--primary-light);transform:scale(1.15) rotate(15deg);box-shadow:var(--glow-red)}
+.notif-btn::after{content:'';position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--primary);animation:dotPulse 1.5s infinite;box-shadow:0 0 8px rgba(239,68,68,0.6)}
+.avatar-area{display:flex;align-items:center;gap:10px;padding-left:16px;border-left:1px solid rgba(239,68,68,0.12)}
+.avatar{
+  width:40px;height:40px;border-radius:14px;
+  background:var(--gradient-hero);
+  display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;
+  transition:all .4s;box-shadow:0 4px 15px rgba(239,68,68,0.25);
+  animation:avatarBreath 4s ease-in-out infinite;
+}
+@keyframes avatarBreath{0%,100%{box-shadow:0 4px 15px rgba(239,68,68,0.25)}50%{box-shadow:0 4px 25px rgba(239,68,68,0.45)}}
+.avatar:hover{transform:scale(1.15) rotate(-10deg);box-shadow:0 6px 30px rgba(239,68,68,0.4)}
+.avatar-info p{font-size:12px;font-weight:600}
+.avatar-info small{font-size:10px;color:var(--fg-dim)}
+
+.content{flex:1;padding:28px;overflow:auto}
+
+/* ===== GLASS CARD ===== */
+.glass{
+  background:var(--gradient-card);backdrop-filter:blur(20px);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  box-shadow:var(--shadow-red);transition:all .4s cubic-bezier(.4,0,.2,1);
+  position:relative;overflow:hidden;
+}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(239,68,68,0.2),transparent)}
+.glass-hover:hover{
+  transform:translateY(-8px);
+  box-shadow:0 12px 50px rgba(239,68,68,0.15),0 0 0 1px var(--glass-border-hover);
+  border-color:var(--glass-border-hover);
+}
+
+/* ===== GRADIENT TEXT ===== */
+.grad-text{background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.grad-text-fire{background:var(--gradient-fire);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:fireText 3s ease-in-out infinite}
+@keyframes fireText{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* ===== PAGE HEADER ===== */
+.page-header{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.page-icon{
+  padding:14px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 4px 20px rgba(239,68,68,0.3);position:relative;
+  animation:iconFloat 3s ease-in-out infinite;
+}
+.page-icon::after{content:'';position:absolute;inset:-2px;border-radius:18px;background:var(--gradient-fire);opacity:0;z-index:-1;animation:iconRing 3s ease-in-out infinite}
+@keyframes iconFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+@keyframes iconRing{0%,100%{opacity:0;transform:scale(1)}50%{opacity:.3;transform:scale(1.2)}}
+
+/* ===== STATS ===== */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.stat-card{padding:20px;position:relative;overflow:hidden}
+.stat-card::after{
+  content:'';position:absolute;top:-30px;right:-30px;width:100px;height:100px;border-radius:50%;
+  background:radial-gradient(circle,rgba(239,68,68,0.08),transparent 70%);
+  transition:all .5s;
+}
+.stat-card:hover::after{transform:scale(2);opacity:.6}
+.stat-card::before{top:0;background:linear-gradient(90deg,transparent,rgba(239,68,68,0.15),transparent);animation:none}
+.stat-card:hover::before{animation:cardShine 1.5s ease}
+@keyframes cardShine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;position:relative}
+.stat-icon{
+  width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:var(--primary-pale);
+  animation:statIconPop 4s ease-in-out infinite;
+}
+@keyframes statIconPop{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.stat-change{font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(34,197,94,0.12);color:var(--risk-low)}
+.stat-value{font-size:28px;font-weight:900;letter-spacing:-.5px;position:relative}
+.stat-label{font-size:11px;color:var(--fg-dim);font-weight:500;margin-top:2px}
+
+/* ===== SPLIT ===== */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+
+/* ===== FORM ===== */
+.form-section h3,.result-section h3{font-size:14px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.section-dot{width:10px;height:10px;border-radius:50%;animation:dotPulse 1.5s infinite}
+.section-dot.primary{background:var(--primary);box-shadow:0 0 12px rgba(239,68,68,0.5)}
+.section-dot.accent{background:var(--accent);box-shadow:0 0 12px rgba(249,115,22,0.5)}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label.field-label{font-size:10px;font-weight:700;color:var(--fg-dim);display:block;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+.field-input{
+  width:100%;padding:12px 14px;border-radius:14px;
+  background:rgba(239,68,68,0.04);border:1.5px solid rgba(239,68,68,0.12);
+  color:var(--fg);font-size:13px;font-family:'Outfit',sans-serif;font-weight:500;
+  outline:none;transition:all .35s cubic-bezier(.4,0,.2,1);
+}
+.field-input:focus{
+  background:rgba(239,68,68,0.06);
+  box-shadow:0 0 0 3px rgba(239,68,68,0.1),0 0 20px rgba(239,68,68,0.08);
+  border-color:var(--primary-light);transform:translateY(-2px);
+}
+.field-input::placeholder{color:var(--fg-dim);font-weight:400}
+select.field-input{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a06565' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+option{background:#2a1111;color:var(--fg)}
+
+.btn-predict{
+  width:100%;padding:16px;border:none;border-radius:14px;
+  background:var(--gradient-hero);color:#fff;font-size:15px;font-weight:800;font-family:'Outfit',sans-serif;
+  cursor:pointer;transition:all .35s cubic-bezier(.4,0,.2,1);margin-top:14px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 6px 25px rgba(239,68,68,0.35);position:relative;overflow:hidden;letter-spacing:.3px;
+}
+.btn-predict::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(transparent,rgba(255,255,255,0.1),transparent 30%);animation:btnSweep 3s linear infinite}
+@keyframes btnSweep{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.btn-predict::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);transform:translateX(-100%);transition:transform .6s}
+.btn-predict:hover::after{transform:translateX(100%)}
+.btn-predict:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(239,68,68,0.45)}
+.btn-predict:active{transform:translateY(-1px)}
+.btn-predict:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+/* ===== RESULT ===== */
+.result-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:340px}
+.result-empty{text-align:center;animation:fadeUp .6s ease-out}
+.result-empty-icon{
+  width:90px;height:90px;margin:0 auto 16px;border-radius:22px;
+  background:var(--gradient-card);border:1.5px solid var(--glass-border);
+  display:flex;align-items:center;justify-content:center;font-size:38px;
+  box-shadow:var(--shadow-red);animation:iconFloat 3s ease-in-out infinite;
+}
+.result-empty p{font-size:14px;color:var(--fg-muted);font-weight:500}
+.result-empty small{font-size:11px;color:var(--fg-dim)}
+
+.loading-anim{text-align:center;animation:fadeUp .4s ease-out}
+.loader-container{width:100px;height:100px;margin:0 auto 24px;position:relative}
+.loader-container .ring{position:absolute;border-radius:50%;border:2.5px solid transparent}
+.loader-container .ring-1{inset:0;border-color:rgba(239,68,68,0.15);animation:spinSlow 10s linear infinite}
+.loader-container .ring-2{inset:6px;border-top-color:var(--primary);border-right-color:var(--accent);animation:spin 1.2s linear infinite}
+.loader-container .ring-3{inset:14px;border-bottom-color:var(--cherry);border-left-color:var(--rose);animation:spin 0.8s linear infinite reverse}
+.loader-container .ring-4{inset:22px;border-color:rgba(239,68,68,0.1);border-style:dashed;animation:spinSlow 6s linear infinite reverse}
+.loader-container .center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;animation:heartbeat 1s ease-in-out infinite}
+@keyframes heartbeat{0%,100%{transform:scale(1)}14%{transform:scale(1.15)}28%{transform:scale(1)}42%{transform:scale(1.1)}70%{transform:scale(1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+.loading-anim .load-text{font-size:15px;font-weight:700}
+.loading-anim .load-sub{font-size:11px;color:var(--fg-dim);margin-top:4px}
+.loading-dots::after{content:'';animation:dots 1.5s steps(3) infinite}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+
+.loading-bar{width:200px;height:4px;border-radius:2px;background:rgba(239,68,68,0.1);margin:16px auto 0;overflow:hidden}
+.loading-bar-fill{height:100%;width:0%;background:var(--gradient-fire);border-radius:2px;animation:loadBar 3s ease-in-out forwards}
+@keyframes loadBar{0%{width:0%}50%{width:60%}80%{width:85%}100%{width:95%}}
+
+.result-content{width:100%;animation:resultReveal .7s cubic-bezier(.34,1.56,.64,1)}
+@keyframes resultReveal{from{opacity:0;transform:scale(.7) translateY(40px) rotate(-3deg)}to{opacity:1;transform:scale(1) translateY(0) rotate(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.risk-badge{display:inline-block;padding:6px 22px;border-radius:999px;font-size:12px;font-weight:800;text-align:center;margin-bottom:16px;letter-spacing:.8px;text-transform:uppercase;animation:badgePop .5s cubic-bezier(.34,1.56,.64,1) .2s both}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+.risk-badge.low{background:rgba(34,197,94,0.12);color:var(--risk-low);border:1.5px solid rgba(34,197,94,0.25);box-shadow:0 0 20px rgba(34,197,94,0.15)}
+.risk-badge.moderate{background:rgba(245,158,11,0.12);color:var(--risk-med);border:1.5px solid rgba(245,158,11,0.25);box-shadow:0 0 20px rgba(245,158,11,0.15)}
+.risk-badge.high{background:rgba(239,68,68,0.12);color:var(--risk-high);border:1.5px solid rgba(239,68,68,0.25);box-shadow:0 0 20px rgba(239,68,68,0.15);animation:badgePop .5s cubic-bezier(.34,1.56,.64,1) .2s both,riskPulse 1.5s ease-in-out infinite .7s}
+@keyframes riskPulse{0%,100%{box-shadow:0 0 20px rgba(239,68,68,0.15)}50%{box-shadow:0 0 40px rgba(239,68,68,0.35)}}
+
+.complication-card{text-align:center;padding:22px;margin-bottom:14px;animation:slideUp .5s ease-out .3s both}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.complication-card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 50% 0%,rgba(239,68,68,0.05),transparent 60%)}
+.complication-card p.label{font-size:10px;color:var(--fg-dim);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+.complication-card p.value{font-size:20px;font-weight:900;letter-spacing:-.3px}
+.complication-card.low{box-shadow:0 4px 25px rgba(34,197,94,0.1)}
+.complication-card.moderate{box-shadow:0 4px 25px rgba(245,158,11,0.1)}
+.complication-card.high{box-shadow:0 4px 25px rgba(239,68,68,0.12)}
+
+.confidence-card{padding:18px;margin-bottom:14px;animation:slideUp .5s ease-out .5s both}
+.confidence-top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px}
+.confidence-top span:first-child{color:var(--fg-dim);font-weight:500}
+.confidence-top span:last-child{font-weight:800;color:var(--primary)}
+.confidence-bar{height:10px;border-radius:999px;background:rgba(239,68,68,0.08);overflow:hidden;position:relative}
+.confidence-fill{height:100%;border-radius:999px;background:var(--gradient-fire);transition:width 1.5s cubic-bezier(.4,0,.2,1);position:relative}
+.confidence-fill::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);animation:barShine 1.8s linear infinite}
+@keyframes barShine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+
+.result-details{font-size:12px;color:var(--fg-muted);line-height:1.8;animation:slideUp .5s ease-out .7s both}
+
+/* ===== PAGES ===== */
+.page{display:none}
+.page.active{display:block;animation:pageReveal .6s cubic-bezier(.4,0,.2,1)}
+@keyframes pageReveal{from{opacity:0;transform:translateY(20px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+/* ===== CHARTS ===== */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.chart-card{padding:24px}
+.chart-card h3{font-size:14px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.chart-card h3 span.chart-icon{font-size:20px}
+.chart-card canvas{max-height:260px}
+.chart-full{grid-column:1/-1}
+
+/* ===== HISTORY ===== */
+.history-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:28px}
+.search-box{position:relative}
+.search-box svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--fg-dim);transition:color .3s}
+.search-input{
+  padding:12px 18px 12px 40px;border-radius:14px;
+  background:rgba(239,68,68,0.04);border:1.5px solid rgba(239,68,68,0.12);
+  color:var(--fg);font-size:13px;font-family:'Outfit',sans-serif;font-weight:500;
+  outline:none;width:280px;transition:all .4s cubic-bezier(.4,0,.2,1);
+}
+.search-input:focus{
+  background:rgba(239,68,68,0.06);
+  box-shadow:0 0 0 3px rgba(239,68,68,0.1),0 0 20px rgba(239,68,68,0.08);
+  border-color:var(--primary-light);width:340px;
+}
+.search-input:focus+svg,.search-box:focus-within svg{color:var(--primary)}
+
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{
+  padding:14px 18px;text-align:left;font-size:10px;font-weight:700;color:var(--fg-dim);
+  text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid rgba(239,68,68,0.1);
+  background:rgba(239,68,68,0.03);
+}
+.data-table td{padding:14px 18px;border-bottom:1px solid rgba(239,68,68,0.06)}
+.data-table tr{transition:all .3s}
+.data-table tbody tr:hover{background:rgba(239,68,68,0.04);transform:scale(1.005)}
+.data-table tbody tr:hover td{color:var(--fg)}
+.data-table .name{font-weight:600}
+.data-table .muted{color:var(--fg-muted)}
+
+/* ===== TOAST ===== */
+#toast{
+  position:fixed;bottom:28px;right:28px;z-index:100;padding:16px 24px;border-radius:16px;
+  background:rgba(40,15,15,0.95);backdrop-filter:blur(20px);
+  border:1.5px solid rgba(239,68,68,0.2);
+  box-shadow:0 12px 40px rgba(239,68,68,0.2);
+  font-size:13px;font-weight:600;transform:translateY(120px) scale(.9);opacity:0;
+  transition:all .5s cubic-bezier(.34,1.56,.64,1);color:var(--fg);
+}
+#toast.show{transform:translateY(0) scale(1);opacity:1}
+
+/* ===== RIPPLE ===== */
+.ripple{position:relative;overflow:hidden}
+.ripple-wave{position:absolute;border-radius:50%;background:rgba(239,68,68,0.2);transform:scale(0);animation:rippleOut .6s ease-out forwards;pointer-events:none}
+@keyframes rippleOut{to{transform:scale(4);opacity:0}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){.stats-grid{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}.charts-grid{grid-template-columns:1fr}.form-grid-3{grid-template-columns:1fr 1fr}}
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;z-index:50;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(26,5,5,0.5);backdrop-filter:blur(4px);z-index:40}
+  .sidebar-overlay.show{display:block}
+  .mobile-toggle{display:flex!important}
+  .topnav-search{display:none}.avatar-info{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .search-input{width:200px}.search-input:focus{width:220px}
+  .content{padding:16px}
+  .form-grid-3{grid-template-columns:1fr}
+}
+.mobile-toggle{display:none;padding:10px;border:none;background:rgba(239,68,68,0.06);color:var(--fg-dim);cursor:pointer;border-radius:12px;transition:all .3s}
+.mobile-toggle:hover{background:var(--primary-pale);color:var(--primary)}
+
+/* ===== TYPING EFFECT ===== */
+.typewriter{overflow:hidden;border-right:2px solid var(--primary);white-space:nowrap;animation:typing 2s steps(30) 1s both,blinkCaret .75s step-end infinite}
+@keyframes typing{from{width:0}to{width:100%}}
+@keyframes blinkCaret{from,to{border-color:transparent}50%{border-color:var(--primary)}}
+
+/* ===== COUNTER FLIP ===== */
+.counter-flip{display:inline-block;animation:counterFlip .6s cubic-bezier(.34,1.56,.64,1)}
+@keyframes counterFlip{from{transform:translateY(20px) rotateX(-90deg);opacity:0}to{transform:translateY(0) rotateX(0);opacity:1}}
+
+/* ===== SCAN LINE ===== */
+.scan-line{position:fixed;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--primary),transparent);z-index:999;pointer-events:none;animation:scanDown 8s linear infinite;opacity:0.15}
+@keyframes scanDown{0%{top:0}100%{top:100vh}}
+
+/* ===== DNA HELIX ===== */
+.dna-container{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:0;pointer-events:none;opacity:0.04}
+.dna-dot{width:6px;height:6px;border-radius:50%;background:var(--primary);position:absolute;animation:dnaWave 3s ease-in-out infinite}
+  /* ===== MODAL ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(26,5,5,0.73);backdrop-filter:blur(10px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease}
+  .modal-content{width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:32px;position:relative;animation:modalScale .4s cubic-bezier(.34,1.56,.64,1);border:1.5px solid rgba(239,68,68,0.2);transition:all .4s;background:rgba(26,10,10,0.85);backdrop-filter:blur(30px)}
+  .modal-content.high{background:rgba(40,15,15,0.92);border-color:rgba(239,68,68,0.35);box-shadow:0 0 50px rgba(239,68,68,0.15)}
+  .modal-content.moderate{background:rgba(30,22,10,0.92);border-color:rgba(245,158,11,0.35);box-shadow:0 0 50px rgba(245,158,11,0.1)}
+  .modal-content.low{background:rgba(10,26,16,0.92);border-color:rgba(34,197,94,0.35);box-shadow:0 0 50px rgba(34,197,94,0.1)}
+  @keyframes modalScale{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid rgba(34,197,94,0.12);padding-bottom:16px}
+  .modal-header h3{font-size:18px;font-weight:900;letter-spacing:-.5px}
+  .close-btn{background:rgba(34,197,94,0.08);border:none;color:var(--fg-dim);width:36px;height:36px;border-radius:10px;font-size:24px;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center}
+  .close-btn:hover{background:#22c55e;color:#fff;transform:rotate(90deg)}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .modal-item{padding:14px;background:rgba(34,197,94,0.05);border-radius:14px;border:1px solid rgba(34,197,94,0.1)}
+  .modal-item .val{font-size:16px;font-weight:800;color:var(--primary-light)}
+  .modal-item.high .val{color:#ef4444}
+  .modal-item.moderate .val{color:#f59e0b}
+  .modal-item.low .val{color:#22c55e}
+  
+  .modal-item .lab{font-size:10px;text-transform:uppercase;color:var(--fg-dim);margin-bottom:4px;font-weight:700;letter-spacing:1px}
+  .grad-text-nature{background:linear-gradient(135deg,#22c55e,#10b981);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .grad-text-fire{background:linear-gradient(135deg,#ef4444,#f97316);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .grad-text-warning{background:linear-gradient(135deg,#f59e0b,#fbbf24);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .patient-link{color:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:4px;transition:all .3s}
+  .patient-link:hover{color:var(--primary);text-decoration:none;letter-spacing:.3px}
+  
+  tr.high{color:var(--risk-high)}
+  tr.moderate{color:var(--risk-med)}
+  tr.low{color:var(--risk-low)}
+</style>
+</head>
+<body>
+<div class="animated-bg app" id="app">
+  <div class="grid-overlay"></div>
+  <div class="scan-line"></div>
+  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div><div class="orb orb-4"></div><div class="orb orb-5"></div><div class="orb orb-6"></div>
+  <div class="particles" id="particles"></div>
+  <div class="heartbeat-line"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileSidebar()"></div>
+
+  <!-- DNA Helix decoration -->
+  <div class="dna-container" id="dnaHelix"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🫀</div>
+      <div class="sidebar-title"><h1>SickleCell AI</h1><p>Prediction System</p></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active ripple" onclick="showPage('dashboard')" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item ripple" onclick="showPage('history')" data-page="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Patient History</span>
+      </div>
+      <div class="nav-item ripple" onclick="showPage('analytics')" data-page="analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Analytics</span>
+      </div>
+    </nav>
+    <div class="sidebar-heartbeat">
+      <svg class="hb-svg" width="600" height="30" viewBox="0 0 600 30">
+        <polyline fill="none" stroke="rgba(239,68,68,0.3)" stroke-width="1.5"
+          points="0,15 30,15 35,15 40,5 45,25 50,15 55,15 80,15 130,15 135,15 140,5 145,25 150,15 155,15 180,15 230,15 235,15 240,5 245,25 250,15 255,15 280,15 300,15 330,15 335,15 340,5 345,25 350,15 355,15 380,15 430,15 435,15 440,5 445,25 450,15 455,15 480,15 530,15 535,15 540,5 545,25 550,15 555,15 580,15 600,15"/>
+      </svg>
+    </div>
+    <div class="sidebar-status">
+      <div class="status-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>System Status</span>
+      </div>
+      <div class="status-dot">AI Model Active</div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+  </aside>
+
+  <div class="main">
+    <!-- PATIENT MODAL -->
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()">
+      <div class="glass modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h3 id="modalTitle" class="grad-text-fire">Patient Profile</h3>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div id="modalBody"></div>
+      </div>
+    </div>
+
+    <header class="topnav">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="mobile-toggle" onclick="toggleMobileSidebar()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="topnav-title">AI Healthcare Dashboard</span>
+      </div>
+      <div class="topnav-right">
+        <div class="avatar-area" style="border-left:none;padding-left:0">
+          <div class="avatar">🤖</div>
+          <div class="avatar-info"><p>SickleCellAI</p><small>AI Prediction</small></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="page-icon" style="background:var(--gradient-hero)">🧠</div>
+          <div>
+            <h2 class="grad-text-fire" style="font-size:24px;font-weight:900;letter-spacing:-.5px">Sickle Cell Complication Predictor</h2>
+            <p style="font-size:12px;color:var(--fg-dim)">AI-powered clinical decision support system</p>
+          </div>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+          <div class="glass glass-hover stat-card ripple"><div class="stat-top"><span class="stat-icon">✨</span><span class="stat-change">+12%</span></div><p class="stat-value grad-text-fire counter-flip">0</p><p class="stat-label">Patients Analyzed</p></div>
+          <div class="glass glass-hover stat-card ripple"><div class="stat-top"><span class="stat-icon">🧠</span><span class="stat-change">+5%</span></div><p class="stat-value grad-text-fire counter-flip">0</p><p class="stat-label">Predictions Today</p></div>
+          <div class="glass glass-hover stat-card ripple"><div class="stat-top"><span class="stat-icon">⚡</span><span class="stat-change">+1.2%</span></div><p class="stat-value grad-text-fire counter-flip">0</p><p class="stat-label">Model Accuracy</p></div>
+          <div class="glass glass-hover stat-card ripple"><div class="stat-top"><span class="stat-icon">⚠️</span><span class="stat-change">-3</span></div><p class="stat-value grad-text-fire counter-flip">0</p><p class="stat-label">High Risk Alerts</p></div>
+        </div>
+        <div class="split">
+          <div class="glass form-section" style="padding:28px">
+            <h3><span class="section-dot primary"></span> Patient Clinical Data</h3>
+            <form id="predictForm" onsubmit="handlePredict(event)">
+              <div class="form-grid">
+                <div><label class="field-label">Patient Name</label><input class="field-input" placeholder="John Doe" id="pName"></div>
+                <div><label class="field-label">Age</label><input class="field-input" type="number" placeholder="25" id="pAge"></div>
+                <div><label class="field-label">Gender</label><select class="field-input" id="pGender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+                <div><label class="field-label">Blood Group</label><select class="field-input" id="pBlood"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+                <div><label class="field-label">Hemoglobin (g/dL)</label><input class="field-input" type="number" step="0.1" placeholder="7.5" id="pHb"></div>
+                <div><label class="field-label">WBC (×10³/μL)</label><input class="field-input" type="number" step="0.1" placeholder="12.5" id="pWbc"></div>
+                <div><label class="field-label">RBC (×10⁶/μL)</label><input class="field-input" type="number" step="0.1" placeholder="3.2" id="pRbc"></div>
+                <div><label class="field-label">Platelets (×10³/μL)</label><input class="field-input" type="number" placeholder="250" id="pPlatelets"></div>
+              </div>
+              <div class="form-grid-3" style="margin-top:14px">
+                <div><label class="field-label">Reticulocytes (%)</label><input class="field-input" type="number" step="0.1" placeholder="2.5" id="pReticulocytes"></div>
+                <div><label class="field-label">Bilirubin (mg/dL)</label><input class="field-input" type="number" step="0.1" placeholder="1.2" id="pBilirubin"></div>
+                <div><label class="field-label">LDH (U/L)</label><input class="field-input" type="number" placeholder="450" id="pLdh"></div>
+              </div>
+              <div class="form-grid" style="margin-top:14px">
+                <div><label class="field-label">Pain Type</label><select class="field-input" id="pPainType"><option value="">Select</option><option>Bone Pain</option><option>Abdominal Pain</option><option>Chest Pain</option><option>Joint Pain</option></select></div>
+                <div><label class="field-label">Pain Intensity</label><select class="field-input" id="pPainIntensity"><option value="">Select</option><option>Low</option><option>Moderate</option><option>High</option></select></div>
+              </div>
+              <button type="submit" class="btn-predict ripple" id="predictBtn">🧠 Run AI Prediction</button>
+            </form>
+          </div>
+          <div class="glass result-section" style="padding:28px;display:flex;flex-direction:column">
+            <h3><span class="section-dot accent"></span> AI Prediction Result</h3>
+            <div class="result-area" id="resultArea">
+              <div class="result-empty"><div class="result-empty-icon">🧠</div><p>Enter patient data and click predict</p><small>AI model will analyze clinical parameters</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="page-history">
+        <div class="history-header">
+          <div class="page-header" style="margin-bottom:0">
+            <div class="page-icon" style="background:var(--gradient-hero)">📋</div>
+            <div><h2 class="grad-text-fire" style="font-size:24px;font-weight:900">Patient History</h2><p style="font-size:12px;color:var(--fg-dim)" id="recordCount">8 records</p></div>
+          </div>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" placeholder="Search patients..." oninput="filterHistory(this.value)">
+          </div>
+        </div>
+        <div class="glass" style="overflow:hidden"><div style="overflow-x:auto">
+          <table class="data-table"><thead><tr><th>#</th><th>Patient Name</th><th>Age</th><th>Gender</th><th>Complication</th><th>Risk</th><th>Pain Intensity</th></tr></thead><tbody id="historyBody"></tbody></table>
+        </div></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="page" id="page-analytics">
+        <div class="page-header">
+          <div class="page-icon" style="background:var(--gradient-hero)">📊</div>
+          <div><h2 class="grad-text-fire" style="font-size:24px;font-weight:900">Analytics Overview</h2><p style="font-size:12px;color:var(--fg-dim)">Complication trends and insights</p></div>
+        </div>
+        <div class="charts-grid">
+          <div class="glass glass-hover chart-card"><h3><span class="chart-icon">📈</span> Complications Distribution</h3><canvas id="barChart"></canvas></div>
+          <div class="glass glass-hover chart-card"><h3><span class="chart-icon">🥧</span> Risk Distribution</h3><canvas id="pieChart"></canvas></div>
+          <div class="glass glass-hover chart-card chart-full"><h3><span class="chart-icon">📉</span> Age Group Trends</h3><canvas id="lineChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><div style="display:flex;align-items:center;gap:10px"><span>🔴</span><span id="toastText"></span></div></div>
+
+<script>
+// ===== PARTICLES + EMBERS =====
+(function(){
+  const c=document.getElementById('particles');
+  for(let i=0;i<30;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(10+Math.random()*15)+'s';
+    p.style.animationDelay=Math.random()*12+'s';
+    const s=2+Math.random()*4;
+    p.style.width=p.style.height=s+'px';
+    const hue=0+Math.random()*30;
+    p.style.background=`hsl(${hue},${80+Math.random()*20}%,${50+Math.random()*20}%)`;
+    p.style.boxShadow=`0 0 ${4+Math.random()*6}px hsl(${hue},80%,50%)`;
+    c.appendChild(p);
+  }
+  for(let i=0;i<15;i++){
+    const e=document.createElement('div');
+    e.className='ember';
+    e.style.left=Math.random()*100+'%';
+    e.style.animationDuration=(8+Math.random()*10)+'s';
+    e.style.animationDelay=Math.random()*8+'s';
+    e.style.width=e.style.height=(1+Math.random()*3)+'px';
+    c.appendChild(e);
+  }
+})();
+// ===== LOAD REAL HISTORY =====
+async function loadHistory(){
+  const res = await fetch("/history");
+  const data = await res.json();
+
+  const container = document.getElementById("historyContainer");
+
+  if(!container) return;
+
+  container.innerHTML = data.map(p => `
+    <div class="history-card">
+      <h4>${p.name}</h4>
+      <p>${p.age} • ${p.gender} • ${p.blood}</p>
+      <p>${p.complication}</p>
+      <span>${p.risk}</span>
+    </div>
+  `).join("");
+}
+
+// call when page loads
+window.onload = function(){
+  loadHistory();
+};
+
+// ===== DNA HELIX =====
+(function(){
+  const dna=document.getElementById('dnaHelix');
+  for(let i=0;i<20;i++){
+    const dot=document.createElement('div');
+    dot.className='dna-dot';
+    dot.style.top=(i*25)+'px';
+    dot.style.left=Math.sin(i*0.5)*20+'px';
+    dot.style.animationDelay=(i*0.15)+'s';
+    dot.style.animation=`dnaWave 3s ease-in-out ${i*0.15}s infinite`;
+    dna.appendChild(dot);
+  }
+  const style=document.createElement('style');
+  style.textContent='@keyframes dnaWave{0%,100%{transform:translateX(0) scale(1);opacity:0.6}50%{transform:translateX(20px) scale(1.5);opacity:1}}';
+  document.head.appendChild(style);
+})();
+
+// ===== RIPPLE EFFECT =====
+document.addEventListener('click',function(e){
+  const t=e.target.closest('.ripple');
+  if(!t)return;
+  const r=document.createElement('span');
+  r.className='ripple-wave';
+  const rect=t.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height);
+  r.style.width=r.style.height=size+'px';
+  r.style.left=(e.clientX-rect.left-size/2)+'px';
+  r.style.top=(e.clientY-rect.top-size/2)+'px';
+  t.appendChild(r);
+  setTimeout(()=>r.remove(),600);
+});
+
+// ===== DATA =====
+const patients=[
+  {id:1,name:"Adebayo Ogunlesi",age:24,gender:"Male",blood:"O+",complication:"Vaso-Occlusive Crisis",risk:"high",date:"2026-03-25"},
+  {id:2,name:"Fatima Ibrahim",age:18,gender:"Female",blood:"A+",complication:"Acute Chest Syndrome",risk:"medium",date:"2026-03-24"},
+  {id:3,name:"Chinedu Eze",age:32,gender:"Male",blood:"B+",complication:"Splenic Sequestration",risk:"low",date:"2026-03-24"},
+  {id:4,name:"Amina Yusuf",age:15,gender:"Female",blood:"O-",complication:"Pulmonary Hypertension",risk:"high",date:"2026-03-23"},
+  {id:5,name:"Emeka Nwosu",age:28,gender:"Male",blood:"AB+",complication:"Stroke Risk",risk:"medium",date:"2026-03-22"},
+  {id:6,name:"Ngozi Obi",age:21,gender:"Female",blood:"A-",complication:"Avascular Necrosis",risk:"low",date:"2026-03-21"},
+  {id:7,name:"Tunde Bakare",age:40,gender:"Male",blood:"B-",complication:"Vaso-Occlusive Crisis",risk:"high",date:"2026-03-20"},
+  {id:8,name:"Halima Bello",age:12,gender:"Female",blood:"O+",complication:"Acute Chest Syndrome",risk:"medium",date:"2026-03-19"},
+];
+const complications=["Vaso-Occlusive Crisis","Acute Chest Syndrome","Splenic Sequestration","Pulmonary Hypertension","Stroke Risk","Avascular Necrosis"];
+
+// ===== NAV =====
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+  if(page==='analytics')initCharts();
+  if(window.innerWidth<768)toggleMobileSidebar();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed')}
+function toggleMobileSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+// ===== PREDICT =====
+const scanTexts=["Analyzing RBC morphology...","Processing hemolysis markers...","Evaluating reticulocyte response...","Calculating bilirubin levels...","Assessing LDH patterns...","Computing risk factors..."];
+function handlePredict(e){
+  e.preventDefault();
+  const btn=document.getElementById('predictBtn'),area=document.getElementById('resultArea');
+  btn.disabled=true;
+  btn.innerHTML='<span style="width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin 1s linear infinite"></span> Analyzing<span class="loading-dots"></span>';
+  area.innerHTML=`<div class="loading-anim">
+    <div class="loader-container"><div class="ring ring-1"></div><div class="ring ring-2"></div><div class="ring ring-3"></div><div class="ring ring-4"></div><div class="center">🫀</div></div>
+    <p class="load-text grad-text-fire" id="scanText">AI analyzing patient data<span class="loading-dots"></span></p>
+    <p class="load-sub">Processing clinical parameters</p>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  </div>`;
+
+  let scanIdx=0;
+  const scanInterval=setInterval(()=>{
+    const el=document.getElementById('scanText');
+    if(el){el.innerHTML=scanTexts[scanIdx%scanTexts.length]+'<span class="loading-dots"></span>';scanIdx++;}
+  },600);
+
+  setTimeout(async ()=>{
+  clearInterval(scanInterval);
+
+  try {
+    const data = {
+      Patient_Name: document.getElementById('pName').value,
+      Age: document.getElementById('pAge').value,
+      Gender: document.getElementById('pGender').value,
+      Blood_Group: document.getElementById('pBlood').value,
+
+      Hb: document.getElementById('pHb').value,
+      WBC: document.getElementById('pWbc').value,
+      RBC: document.getElementById('pRbc').value,
+      Platelets: document.getElementById('pPlatelets').value,
+
+      Reticulocytes: document.getElementById('pReticulocytes').value,
+      Bilirubin: document.getElementById('pBilirubin').value,
+      LDH: document.getElementById('pLdh').value,
+
+      Pain_Type: document.getElementById('pPainType').value,
+      Pain_Intensity: document.getElementById('pPainIntensity').value
+    };
+
+    const res = await fetch("/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    // ✅ REAL DATA FROM BACKEND
+    const risk = result.risk.toLowerCase();
+    const comp = result.complication;
+
+    const name = document.getElementById('pName').value || 'patient';
+    const retVal = document.getElementById('pReticulocytes').value || 'N/A';
+    const bilVal = document.getElementById('pBilirubin').value || 'N/A';
+    const ldhVal = document.getElementById('pLdh').value || 'N/A';
+
+    const rl={low:"Low Risk",moderate:"Moderate Risk",high:"High Risk"};
+    
+    const suggestionsMap = {
+      "Vaso-Occlusive Crisis": ["Hydrate aggressively (IV or Oral)", "Administer fast-acting analgesics", "Apply warm compresses", "Monitor oxygenation levels"],
+      "Acute Chest Syndrome": ["Immediate hospitalization required", "Broad-spectrum antibiotics", "Incentive spirometry", "Consider blood transfusion"],
+      "Splenic Sequestration": ["Urgent blood transfusion", "Monitor spleen size frequently", "Prepare for possible splenectomy if recurrent"],
+      "Pulmonary Hypertension": ["Echocardiogram evaluation", "Optimize sickle cell therapy", "Consider targeted pulmonary vasodilators"],
+      "Stroke Risk": ["Routine Transcranial Doppler (TCD)", "Chronic transfusion therapy", "Immediate neurological evaluation if acute"],
+      "Avascular Necrosis": ["Physical therapy and joint protection", "Pain management", "Orthopedic consult for core decompression"],
+      "Priapism (males only)": ["Oral pseudoephedrine", "Hydration and urination", "Aspiration/irrigation by urology if prolonged"],
+      "Frequent Infections": ["Prophylactic penicillin", "Ensure up-to-date vaccinations", "Immediate evaluation for fevers"],
+      "Delayed Growth & Puberty": ["Nutritional counseling", "Endocrinology consultation", "Optimize chronic disease management"],
+      "Vision Problems": ["Annual ophthalmology screening", "Laser photocoagulation for retinopathy", "Surgical intervention for severe cases"],
+      "Chronic Anemia": ["Hydroxyurea therapy", "Folic acid supplementation", "Monitor baseline hemoglobin regularly"],
+      "Gallstones": ["Abdominal ultrasound", "Surgical consult for cholecystectomy if symptomatic"]
+    };
+
+    area.innerHTML=`<div class="result-content">
+      <div style="text-align:center"><span class="risk-badge ${risk}">${rl[risk]}</span></div>
+      <div class="glass complication-card ${risk}">
+        <p class="label">Predicted Complication</p>
+        <p class="value grad-text-fire">${comp}</p>
+      </div>
+
+      <div class="glass" style="padding:14px;margin-bottom:14px;animation:slideUp .5s ease-out .6s both">
+        <p style="font-size:10px;color:var(--fg-dim);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Lab Markers</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:80px;text-align:center;padding:8px;border-radius:10px;background:rgba(239,68,68,0.05)">
+            <p style="font-size:10px;color:var(--fg-dim)">Reticulocytes</p>
+            <p style="font-size:16px;font-weight:800;color:var(--primary-light)">${retVal}%</p>
+          </div>
+          <div style="flex:1;min-width:80px;text-align:center;padding:8px;border-radius:10px;background:rgba(249,115,22,0.05)">
+            <p style="font-size:10px;color:var(--fg-dim)">Bilirubin</p>
+            <p style="font-size:16px;font-weight:800;color:var(--accent)">${bilVal} mg/dL</p>
+          </div>
+          <div style="flex:1;min-width:80px;text-align:center;padding:8px;border-radius:10px;background:rgba(190,18,60,0.05)">
+            <p style="font-size:10px;color:var(--fg-dim)">LDH</p>
+            <p style="font-size:16px;font-weight:800;color:var(--cherry)">${ldhVal} U/L</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass" style="padding:14px;margin-bottom:14px;animation:slideUp .5s ease-out .7s both">
+        <p style="font-size:10px;color:var(--fg-dim);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Clinical Management Suggestions</p>
+        <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:4px;">
+          ${(suggestionsMap[comp] || ["Consult hematologist for targeted treatment plan", "Monitor vitals and symptoms closely"]).map((s, i) => `
+            <div style="display:flex;justify-content:flex-start;align-items:center;background:rgba(34,197,94,0.04);padding:8px 12px;border-radius:10px;gap:12px;">
+              <span style="font-size:16px;">💡</span>
+              <span style="font-size:12px;font-weight:500;color:var(--fg);text-align:left;line-height:1.4">${s}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <p class="result-details">
+        Based on analysis of <strong>${name}</strong>'s clinical data, the AI model predicts a 
+        <strong>${risk}</strong> probability of <strong>${comp}</strong>.
+      </p>
+    </div>`;
+
+    showToast(`${comp} — ${risk.toUpperCase()} risk detected`);
+    loadHistory(); // refresh data concurrently
+
+
+  } catch (err) {
+    alert("Backend error ❌");
+  }
+
+  btn.disabled=false;
+  btn.innerHTML='🧠 Run AI Prediction';
+
+},3500);
+}
+
+// ===== TOAST =====
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastText').textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4500);
+}
+
+// ===== HISTORY MODULE =====
+
+let patientsData = [];
+
+// load data from backend
+async function loadHistory(){
+  try {
+    const res = await fetch("/history");
+    const data = await res.json();
+
+    patientsData = data;
+    renderHistory(data);
+    updateDashboardStats(data);
+    if(chartsInit) updateCharts(data);
+
+  } catch (err) {
+    console.log("Error loading history");
+  }
+}
+
+// render table
+function renderHistory(data){
+  const body = document.getElementById('historyBody');
+
+  body.innerHTML = data.map((p,i)=>`
+    <tr class="${p.risk.toLowerCase()}" style="animation:pageReveal .5s ease-out ${i*0.05}s both">
+      <td>${i+1}</td>
+      <td class="name"><span class="patient-link" onclick="showPatientDetails(${i})">${p.name}</span></td>
+      <td style="font-weight:700">${p.age}</td>
+      <td>${p.gender}</td>
+      <td>${p.complication}</td>
+      <td>
+        <span class="risk-badge ${p.risk.toLowerCase()}">
+          ${p.risk}
+        </span>
+      </td>
+      <td><span style="font-size:12px;font-weight:700;color:var(--accent)">${p.pain}</span></td>
+    </tr>
+  `).join('');
+
+  document.getElementById('recordCount').textContent = `${data.length} records`;
+}
+
+function showPatientDetails(idx) {
+  const p = patientsData[idx];
+  if(!p) return;
+  
+  const content = document.querySelector('.modal-content');
+  content.classList.remove('high','moderate','low');
+  content.classList.add(p.risk.toLowerCase());
+  
+  const gClass = p.risk.toLowerCase() === 'high' ? 'grad-text-fire' : 
+                 (p.risk.toLowerCase() === 'moderate' ? 'grad-text-warning' : 'grad-text-nature');
+  
+  document.getElementById('modalTitle').innerText = `${p.name}'s Full Profile`;
+  document.getElementById('modalTitle').className = gClass;
+  
+  document.getElementById('modalBody').innerHTML = `
+    <div style="text-align:center;margin-bottom:24px">
+      <span class="risk-badge ${p.risk.toLowerCase()}">${p.risk} RISK</span>
+      <p style="font-size:22px;font-weight:900;margin-top:10px;letter-spacing:-.5px" class="${gClass}">${p.complication}</p>
+    </div>
+    <div class="modal-grid">
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Age / Gender</p><p class="val">${p.age} / ${p.gender}</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Blood Group</p><p class="val">${p.blood}</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Hemoglobin (Hb)</p><p class="val">${p.hb} g/dL</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">WBC Count</p><p class="val">${p.wbc} × 10³/μL</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">RBC Count</p><p class="val">${p.rbc} × 10⁶/μL</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Platelets</p><p class="val">${p.plt} × 10³/μL</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Reticulocytes</p><p class="val">${p.ret}%</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Bilirubin</p><p class="val">${p.bili} mg/dL</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">LDH Level</p><p class="val">${p.ldh} U/L</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Pain Type</p><p class="val">${p.pain_type}</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Pain Intensity</p><p class="val">${p.pain}</p></div>
+      <div class="modal-item ${p.risk.toLowerCase()}"><p class="lab">Assessment Date</p><p class="val">${p.date}</p></div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').style.display = 'none';
+}
+
+// Close on escape key
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeModal();
+});
+
+// search filter
+function filterHistory(q){
+  const filtered = patientsData.filter(p =>
+    p.name.toLowerCase().includes(q.toLowerCase()) ||
+    p.complication.toLowerCase().includes(q.toLowerCase())
+  );
+
+  renderHistory(filtered);
+}
+
+// load on page start
+window.onload = function(){
+  loadHistory();
+};
+  
+// ===== CHARTS =====
+let chartsInit=false;
+let bChart, pChart, lChart;
+
+function updateDashboardStats(data) {
+  const total = data.length;
+  // Strictly filter by today's date (YYYY-MM-DD from the DB string)
+  const todayDate = new Date().toISOString().split('T')[0];
+  const today = data.filter(d => d.date && d.date.startsWith(todayDate)).length;
+  const highRisk = data.filter(d => d.risk.toLowerCase() === 'high').length;
+  
+  const vals = [{v:total,s:''}, {v:today,s:''}, {v:94.2,s:'%'}, {v:highRisk,s:''}];
+  document.querySelectorAll('.stat-value').forEach((el,i)=>animateCount(el,vals[i].v,vals[i].s));
+}
+
+function updateCharts(data) {
+  if(!bChart || !pChart || !lChart) return;
+  
+  // Update pie chart (Risk Distribution)
+  const riskCounts = {low:0, moderate:0, high:0};
+  data.forEach(d => {
+    const r = d.risk.toLowerCase();
+    if(riskCounts[r] !== undefined) riskCounts[r]++;
+  });
+  pChart.data.datasets[0].data = [riskCounts.low, riskCounts.moderate, riskCounts.high];
+  pChart.update();
+
+  // Update bar chart (Complications dynamically from history)
+  const compCounts = {};
+  data.forEach(d => {
+    if(!compCounts[d.complication]) compCounts[d.complication] = 0;
+    compCounts[d.complication]++;
+  });
+  const labels = Object.keys(compCounts).sort((a,b)=>compCounts[b]-compCounts[a]);
+  const counts = labels.map(l => compCounts[l]);
+  
+  // Abbreviate long labels for the small chart
+  const shortLabels = labels.map(l => l.length > 15 ? l.substring(0, 12) + '...' : l);
+  
+  bChart.data.labels = shortLabels;
+  bChart.data.datasets[0].data = counts;
+  bChart.data.datasets[0].backgroundColor = ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#6366f1','#d946ef','#eab308'].slice(0, counts.length);
+  bChart.update();
+
+  // Update line chart (Age Groups by Risk)
+  const ageBins = {
+    low: [0, 0, 0, 0, 0, 0], 
+    moderate: [0, 0, 0, 0, 0, 0], 
+    high: [0, 0, 0, 0, 0, 0]
+  };
+  data.forEach(d => {
+    const r = d.risk.toLowerCase();
+    const age = parseInt(d.age) || 0;
+    let bIdx = 5; // 46+
+    if(age <= 5) bIdx = 0;
+    else if(age <= 12) bIdx = 1;
+    else if(age <= 18) bIdx = 2;
+    else if(age <= 30) bIdx = 3;
+    else if(age <= 45) bIdx = 4;
+    
+    if(ageBins[r]) ageBins[r][bIdx]++;
+  });
+  lChart.data.datasets[0].data = ageBins.low;
+  lChart.data.datasets[1].data = ageBins.moderate;
+  lChart.data.datasets[2].data = ageBins.high;
+  lChart.update();
+}
+
+function initCharts(){
+  if(chartsInit)return;chartsInit=true;
+  Chart.defaults.color='#a06565';Chart.defaults.borderColor='rgba(239,68,68,0.08)';
+  Chart.defaults.font.family='Outfit,sans-serif';Chart.defaults.font.weight=500;
+  
+  const bCtx=document.getElementById('barChart').getContext('2d');
+  const bG=bCtx.createLinearGradient(0,0,0,260);bG.addColorStop(0,'#ef4444');bG.addColorStop(1,'#be123c');
+  
+  bChart = new Chart(bCtx,{type:'bar',data:{labels:['VOC','ACS','Splenic','PH','Stroke','AVN'],datasets:[{label:'Cases',data:[0,0,0,0,0,0],backgroundColor:bG,borderRadius:10,borderSkipped:false,barPercentage:.6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(239,68,68,0.05)'}, beginAtZero: true},x:{grid:{display:false}}},animation:{duration:2000,easing:'easeOutQuart'}}});
+  
+  pChart = new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:['Low','Moderate','High'],datasets:[{data:[0,0,0],backgroundColor:['#22c55e','#f59e0b','#ef4444'],borderWidth:0,spacing:6,borderRadius:5}]},options:{responsive:true,cutout:'65%',plugins:{legend:{position:'bottom',labels:{padding:18,usePointStyle:true,pointStyleWidth:10,font:{size:12}}}},animation:{animateRotate:true,duration:2000,easing:'easeOutQuart'}}});
+  
+  const lCtx=document.getElementById('lineChart').getContext('2d');
+  const g1=lCtx.createLinearGradient(0,0,0,280);g1.addColorStop(0,'rgba(34,197,94,0.15)');g1.addColorStop(1,'transparent');
+  const g2=lCtx.createLinearGradient(0,0,0,280);g2.addColorStop(0,'rgba(245,158,11,0.15)');g2.addColorStop(1,'transparent');
+  const g3=lCtx.createLinearGradient(0,0,0,280);g3.addColorStop(0,'rgba(239,68,68,0.15)');g3.addColorStop(1,'transparent');
+  lChart = new Chart(lCtx,{type:'line',data:{labels:['0-5','6-12','13-18','19-30','31-45','46+'],datasets:[
+    {label:'Low',data:[0,0,0,0,0,0],borderColor:'#22c55e',backgroundColor:g1,fill:true,tension:.4,pointRadius:5,pointHoverRadius:9,borderWidth:2.5,pointBackgroundColor:'#1a0a0a',pointBorderWidth:2.5},
+    {label:'Moderate',data:[0,0,0,0,0,0],borderColor:'#f59e0b',backgroundColor:g2,fill:true,tension:.4,pointRadius:5,pointHoverRadius:9,borderWidth:2.5,pointBackgroundColor:'#1a0a0a',pointBorderWidth:2.5},
+    {label:'High',data:[0,0,0,0,0,0],borderColor:'#ef4444',backgroundColor:g3,fill:true,tension:.4,pointRadius:5,pointHoverRadius:9,borderWidth:2.5,pointBackgroundColor:'#1a0a0a',pointBorderWidth:2.5}
+  ]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{padding:18,usePointStyle:true,pointStyleWidth:10,font:{size:12}}}},scales:{y:{grid:{color:'rgba(239,68,68,0.05)'},beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}},animation:{duration:2500,easing:'easeOutQuart'}}});
+
+  updateCharts(patientsData);
+}
+
+// ===== STAGGER STATS =====
+document.querySelectorAll('.stat-card').forEach((c,i)=>{
+  c.style.opacity='0';c.style.transform='translateY(30px) scale(.95)';
+  setTimeout(()=>{c.style.transition='all .6s cubic-bezier(.34,1.56,.64,1)';c.style.opacity='1';c.style.transform='translateY(0) scale(1)'},i*150+400);
+});
+
+// ===== COUNT-UP =====
+function animateCount(el,target,suffix=''){
+  if(target === undefined) return;
+  const dur=2000,start=performance.now(),isFloat=String(target).includes('.');
+  function step(now){
+    const p=Math.min((now-start)/dur,1),eased=1-Math.pow(1-p,4);
+    let val=eased*target;
+    el.textContent=(isFloat?val.toFixed(1):Math.floor(val).toLocaleString())+suffix;
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>
