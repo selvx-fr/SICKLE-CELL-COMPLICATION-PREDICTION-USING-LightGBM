@@ -1,206 +1,145 @@
-# 🫀 Sickle Cell Complication Prediction System
+# 🌱 Sugarcane Disease Prediction System
 
-An AI-powered healthcare dashboard that predicts potential complications in patients with Sickle Cell Disease using clinical data. This system combines machine learning, data visualization, and patient history tracking to support clinical decision-making.
+An AI-powered agricultural dashboard that detects diseases in sugarcane leaves using image data. This system combines deep learning, computer vision, and interactive visualization to assist farmers and researchers in early disease detection and treatment planning.
 
 ---
 
 ## 🚀 Features
 
 ### 🧠 AI Prediction Engine
-- Predicts top 15 possible complications  
+- Predicts sugarcane leaf diseases from images  
 - Provides:
-  - Primary complication  
+  - Detected disease name  
   - Risk level (Low / Moderate / High)  
   - Confidence score  
-- Uses trained LightGBM model  
+  - Top 3 predictions  
+- Uses trained MobileNetV2 CNN model
+
+---
+
+### 🔥 Explainable AI (Grad-CAM)
+- Generates heatmap overlay on leaf images  
+- Highlights infected regions  
+- Helps understand model decision-making  
+
+---
 
 ### 📊 Interactive Dashboard
-- Beautiful UI with real-time animations  
+- Modern UI with real-time animations  
 - Displays:
-  - Patients analyzed  
-  - Predictions today  
-  - Model accuracy  
-  - High-risk alerts  
+  - Prediction confidence  
+  - Risk severity  
+  - Disease insights  
+  - Visual heatmap output  
 
-### 🧾 Patient Data Input
-Accepts clinical parameters:
-- Hemoglobin (Hb)  
-- WBC, RBC, Platelets  
-- Reticulocytes  
-- Bilirubin, LDH  
-- Pain type & intensity  
-- Demographics (age, gender, blood group)  
+---
 
-### 📋 Patient History
-- Stores last 50 patient records  
-- Includes:
-  - Prediction results  
-  - Clinical values  
-  - Risk levels  
-- Search functionality available  
+### 🖼️ Image Input System
+- Upload sugarcane leaf image  
+- Supports drag & drop and file upload  
+- Automatically preprocesses:
+  - Resize (224 × 224)  
+  - Normalization  
 
-### 📈 Analytics
-Charts for:
-- Complication distribution  
-- Risk distribution  
-- Age-based trends  
+---
+
+### 📋 Disease Intelligence
+Provides detailed information for each disease:
+- Description  
+- Cause  
+- Pathology  
+- Symptoms  
+- Cure methods  
+- Prevention strategies  
 
 ---
 
 ## 🏗️ Tech Stack
 
-### Frontend
-- HTML, CSS (Glassmorphism UI)  
+Frontend:
+- HTML  
+- CSS (Glassmorphism + animations)  
 - JavaScript  
-- Chart.js  
 
-### Backend
+Backend:
 - Python  
 - Flask  
 
-### Machine Learning
-- LightGBM  
-- Scikit-learn  
-- Joblib  
-
-### Database
-- SQLite  
+Machine Learning:
+- TensorFlow / Keras  
+- MobileNetV2  
+- NumPy  
+- Pillow  
 
 ---
 
 ## 📂 Project Structure
 
-```
 project/
 │
 ├── app.py
-├── templates/
-│   └── index.html
-├── patients.db
-├── lgb_model_24_clinical.pkl
-├── scaler_24_clinical.pkl
-├── complication_mapping_24_clinical.pkl
+├── index.html
+├── sugarcane_model.h5
+├── utils.py
+│
+├── static/
+│   └── uploads/
+│
 └── README.md
-```
 
 ---
 
 ## ⚙️ Installation & Setup
 
-### 1️⃣ Clone the Repository
-```
-git clone https://github.com/selvx-fr/sickle-cell-ai.git
-cd sickle-cell-ai
-```
+1. Clone the Repository
+git clone https://github.com/selvx-fr/sugarcane-disease-detection.git
+cd sugarcane-disease-detection
 
-### 2️⃣ Install Dependencies
-```
-pip install flask numpy scikit-learn joblib
-```
+2. Install Dependencies
+pip install flask tensorflow pillow numpy
 
-### 3️⃣ Run the Application
-```
+3. Run the Application
 python app.py
-```
 
-### 4️⃣ Open in Browser
-```
-http://127.0.0.1:5000/
-```
+4. Open in Browser
+http://localhost:5000
 
 ---
 
-## 🔌 API Endpoints
+## 🔌 API Endpoint
 
-### 🔹 Predict Complication
-
-**POST** `/predict`
-
-#### Request Body:
-```
-{
-  "Patient_Name": "John",
-  "Age": 25,
-  "Gender": "Male",
-  "Blood_Group": "O+",
-  "Hb": 7.5,
-  "WBC": 12.5,
-  "RBC": 3.2,
-  "Platelets": 250,
-  "Reticulocytes": 2.5,
-  "Bilirubin": 1.2,
-  "LDH": 450,
-  "Pain_Type": "Bone Pain",
-  "Pain_Intensity": "High"
-}
-```
-
-#### Response:
-```
-{
-  "complication": "Acute Chest Syndrome",
-  "risk": "High",
-  "confidence": 87.5,
-  "top_predictions": [...]
-}
-```
-
----
-
-### 🔹 Get Patient History
-
-**GET** `/history`
-
-Returns last 50 patient records.
+POST /predict → Upload image → Get prediction JSON
 
 ---
 
 ## 🧠 How It Works
 
-1. User enters clinical data in UI  
-2. Data is sent to Flask backend  
-3. Backend:
-   - Encodes categorical values  
-   - Scales numerical features  
-   - Runs ML model  
-4. Model outputs probabilities  
-5. System:
-   - Selects complication  
-   - Assigns risk level  
-   - Stores result in database  
-6. UI displays results + analytics  
+1. User uploads a sugarcane leaf image  
+2. Image is preprocessed  
+3. Model predicts disease  
+4. Grad-CAM generates heatmap  
+5. Results displayed in UI  
 
 ---
 
 ## 🎯 Use Cases
 
-- Clinical decision support  
-- Early risk detection  
-- Hospital dashboards  
-- Academic ML healthcare projects  
+- Smart farming  
+- Crop disease detection  
+- Agricultural research  
 
 ---
 
 ## ⚠️ Disclaimer
 
-This system is for educational and research purposes only.  
-It should not be used as a substitute for professional medical diagnosis.
-
----
-
-## 🔮 Future Improvements
-
-- Deploy on cloud (AWS / Render)  
-- Add authentication (doctor login)  
-- Improve model accuracy  
-- Real-time patient monitoring  
-- Integration with hospital systems  
+For educational and research purposes only.
 
 ---
 
 ## 👨‍💻 Author
 
-**selvx-fr**  
-AI & Full Stack Developer  
+selvx-fr  
+https://github.com/selvx-fr
 
-GitHub: https://github.com/selvx-fr
+---
+
